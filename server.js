@@ -36,13 +36,27 @@ class CreateServer {
                     let key = this.request[4].replaceAll("\r", "");
                     this.get(connection, key);
                 } else if (this.command === "info") {
-                    this.response = `$11\r\nrole:master\r\n`;
-                    this.print(connection);
+                    // check if its master or slave
+                    console.log("cmd", this.command);
+                    if (this.isSlave() === true) {
+                        this.response = `$11\r\nrole:slave\r\n`;
+                        this.print(connection);
+                    } else {
+                        this.response = `$11\r\nrole:master\r\n`;
+                        this.print(connection);
+                    }
                 }
             });
         });
     }
 
+    isSlave() {
+        const isSlave =
+            this.request[this.request.length - 1].replaceAll("\r", "") ===
+            "replication";
+        console.log(isSlave);
+        return isSlave;
+    }
     expire(key, time) {
         if (this.time !== -1) {
             setTimeout(() => {
