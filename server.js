@@ -8,6 +8,26 @@ class CreateServer {
         this.request = "";
         this.command = "";
         this.response = "";
+        this.serverInfo = {
+            role: "",
+        };
+    }
+
+    selectPort(args) {
+        console.log("17", args);
+
+        let port = 6379;
+        if (args) {
+            if (args[0] && args[0] == "--port") {
+                port = args[1] && args[1];
+            }
+            if (args[2] && args[2] == "--replicaof") {
+                this.serverInfo.role = "slave";
+            } else {
+                this.serverInfo.role = "master";
+            }
+        }
+        return port;
     }
 
     initialize() {
@@ -38,13 +58,11 @@ class CreateServer {
                 } else if (this.command === "info") {
                     // check if its master or slave
                     console.log("cmd", this.command);
-                    if (this.isSlave() === true) {
-                        this.response = `$11\r\nrole:slave\r\n`;
-                        this.print(connection);
-                    } else {
-                        this.response = `$11\r\nrole:master\r\n`;
-                        this.print(connection);
-                    }
+                    // '$' + ('role:' + serverInfo.role).length;
+                    // return ('$' + ('role:' + serverInfo.role).length + '\r\n' + 'role:' + serverInfo.role + '\r\n')
+                    this.response = `$${this.serverInfo.role.length + 5}\r\nrole:${this.serverInfo.role}\r\n`;
+                    console.log("64", this.response);
+                    this.print(connection);
                 }
             });
         });
