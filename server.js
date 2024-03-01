@@ -9,13 +9,14 @@ class CreateServer {
         this.command = "";
         this.response = "";
         this.serverInfo = {
-            role: "",
+            role: "master",
+            master_replid: "",
+            master_repl_offset: 0,
         };
     }
 
     selectPort(args) {
-        console.log("17", args);
-
+        console.log(args);
         let port = 6379;
         if (args) {
             if (args[0] && args[0] == "--port") {
@@ -23,11 +24,13 @@ class CreateServer {
             }
             if (args[2] && args[2] == "--replicaof") {
                 this.serverInfo.role = "slave";
-            } else {
-                this.serverInfo.role = "master";
             }
         }
         return port;
+    }
+
+    static bulkStringify(input) {
+        return input ? "$" + input.length + "\r\n" + input + "\r\n" : null;
     }
 
     initialize() {
@@ -54,14 +57,36 @@ class CreateServer {
                     this.print(connection);
                 } else if (this.command === "get") {
                     let key = this.request[4].replaceAll("\r", "");
+                    console.log("59", key);
                     this.get(connection, key);
                 } else if (this.command === "info") {
                     // check if its master or slave
                     console.log("cmd", this.command);
-                    // '$' + ('role:' + serverInfo.role).length;
-                    // return ('$' + ('role:' + serverInfo.role).length + '\r\n' + 'role:' + serverInfo.role + '\r\n')
-                    this.response = `$${this.serverInfo.role.length + 5}\r\nrole:${this.serverInfo.role}\r\n`;
-                    console.log("64", this.response);
+
+                    this.serverInfo.master_replid =
+                        "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
+
+                    // this.response = `$${
+                    //     this.serverInfo.role.length + 5
+                    // }\r\nrole:${this.serverInfo.role}\r\n
+                    //     $${
+                    //         this.serverInfo.master_replid.length + 14
+                    //     }\r\nmaster_replid:${this.serverInfo.master_replid}\n
+                    // $20\r\nmaster_repl_offset:${
+                    //     this.serverInfo.master_repl_offset
+                    // }\r\n
+                    // `;
+
+                    this.response = CreateServer.bulkStringify(
+                        "role:" +
+                            this.serverInfo.role +
+                            "\r\n" +
+                            "master_replid:" +
+                            this.serverInfo.master_replid +
+                            "\r\n" +
+                            "master_repl_offset:" +
+                            this.serverInfo.master_repl_offset,
+                    );
                     this.print(connection);
                 }
             });
@@ -103,25 +128,24 @@ class CreateServer {
 
     get(connection, key) {
         if (this.command === "get") {
-            // if key is empty => return empty string
+            // if key is empty => return empty string (`$-1\r\n`)
             if (key === "") {
-                this.response = `$-1\r\n""\r\n`;
+                this.response = `$-1\r\n`;
                 this.print(connection);
             }
 
             if (key in this.hash) {
                 // see if it's expired or not
                 this.response = `$${this.hash[key].length}\r\n${this.hash[key]}\r\n`;
-                this.print(connection);
             } else {
-                this.response = `$-1\r\n""\r\n`;
-                this.print(connection);
+                this.response = `$-1\r\n`;
             }
+            this.print(connection);
         }
     }
 
     print(connection) {
-        connection.write(this.response);
+        return connection.write(this.response);
     }
 
     generateResponse() {}
