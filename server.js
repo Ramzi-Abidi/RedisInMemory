@@ -15,8 +15,8 @@ class CreateServer {
         };
     }
 
-    selectPort(args) {
-        console.log(args);
+    // check if its master or slave and based on it choose port
+    selectPort(args, arg) {
         let port = 6379;
         if (args) {
             if (args[0] && args[0] == "--port") {
@@ -28,6 +28,13 @@ class CreateServer {
         }
         return port;
     }
+
+    // createReplicaClient(masterHost, masterPort) {
+    //     const client = net.createConnection({ port: port, host: host }, () => {
+    //         client.write("*1\r\n$4\r\nping\r\n");
+    //         console.log("Connected to the server!");
+    //     });
+    // }
 
     static bulkStringify(input) {
         return input ? "$" + input.length + "\r\n" + input + "\r\n" : null;
@@ -60,22 +67,10 @@ class CreateServer {
                     console.log("59", key);
                     this.get(connection, key);
                 } else if (this.command === "info") {
-                    // check if its master or slave
                     console.log("cmd", this.command);
 
                     this.serverInfo.master_replid =
                         "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
-
-                    // this.response = `$${
-                    //     this.serverInfo.role.length + 5
-                    // }\r\nrole:${this.serverInfo.role}\r\n
-                    //     $${
-                    //         this.serverInfo.master_replid.length + 14
-                    //     }\r\nmaster_replid:${this.serverInfo.master_replid}\n
-                    // $20\r\nmaster_repl_offset:${
-                    //     this.serverInfo.master_repl_offset
-                    // }\r\n
-                    // `;
 
                     this.response = CreateServer.bulkStringify(
                         "role:" +
@@ -87,6 +82,11 @@ class CreateServer {
                             "master_repl_offset:" +
                             this.serverInfo.master_repl_offset,
                     );
+                    this.print(connection);
+                } else if (this.command === "exist") {
+                    console.log("89 req", this.request);
+                    let key = this.request[4].replaceAll("\r", "");
+                    this.response = this.exist(key);
                     this.print(connection);
                 }
             });
@@ -108,6 +108,10 @@ class CreateServer {
         }
     }
 
+    exist(key) {
+        console.log(key, "key from exist method");
+        return key in this.hash === true;
+    }
     set(key) {
         // We set the key only if it is not empty
         if (key !== "") {
@@ -145,7 +149,7 @@ class CreateServer {
     }
 
     print(connection) {
-        return connection.write(this.response);
+        return connection.write(this.response.toString());
     }
 
     generateResponse() {}
