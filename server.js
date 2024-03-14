@@ -16,18 +16,18 @@ class CreateServer {
     }
 
     // check if its master or slave and based on it choose port
-    selectPort(args, arg) {
-        let port = 6379;
-        if (args) {
-            if (args[0] && args[0] == "--port") {
-                port = args[1] && args[1];
-            }
-            if (args[2] && args[2] == "--replicaof") {
-                this.serverInfo.role = "slave";
-            }
-        }
-        return port;
-    }
+    // selectPort(args) {
+    //     let port = 6379;
+    //     if (args) {
+    //         if (args[0] && args[0] == "--port") {
+    //             port = args[1] && args[1];
+    //         }
+    //         if (args[2] && args[2] == "--replicaof") {
+    //             this.serverInfo.role = "slave";
+    //         }
+    //     }
+    //     return port;
+    // }
 
     // createReplicaClient(masterHost, masterPort) {
     //     const client = net.createConnection({ port: port, host: host }, () => {
@@ -47,8 +47,7 @@ class CreateServer {
                 this.command = this.request[2]
                     .replaceAll("\r", "")
                     .toLowerCase();
-
-                console.log("request", this.request);
+                console.log("cd from server", this.command);
 
                 if (this.command === "ping") {
                     this.response = "+PONG\r\n";
@@ -58,6 +57,7 @@ class CreateServer {
                     this.response = `$${val.length}\r\n${val}\r\n`;
                     this.print(connection);
                 } else if (this.command === "set") {
+                    console.log("aaa");
                     let key = this.request[4].replaceAll("\r", "");
                     this.set(key);
                     this.response = `+OK\r\n`;
@@ -88,6 +88,9 @@ class CreateServer {
                     let key = this.request[4].replaceAll("\r", "");
                     this.response = this.exist(key);
                     this.print(connection);
+                } else {
+                    this.response = `+${this.command}`;
+                    this.print(connection);
                 }
             });
         });
@@ -100,6 +103,7 @@ class CreateServer {
         console.log(isSlave);
         return isSlave;
     }
+
     expire(key, time) {
         if (this.time !== -1) {
             setTimeout(() => {
@@ -109,9 +113,9 @@ class CreateServer {
     }
 
     exist(key) {
-        console.log(key, "key from exist method");
         return key in this.hash === true;
     }
+
     set(key) {
         // We set the key only if it is not empty
         if (key !== "") {

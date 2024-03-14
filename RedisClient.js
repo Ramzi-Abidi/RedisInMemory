@@ -9,24 +9,22 @@ class RedisClient {
     initialize(PORT, HOST) {
         // Connect to your Redis server that's running on localhost, port 6379
         this.client.connect(PORT, HOST, () => {
-            console.log("Connected to Redis server");
+            console.log("Connected to Redis server".italic.green);
 
-            // Send requests to server
-            const request = "*1\r\n$4\r\nping\r\n";
-            // sends request
-            this.client.write(request);
-        });
+            this.startReadingCommands();
 
-        // Handle responses from the server
-        this.client.on("data", (data) => {
-            console.log("Response from server:", data.toString());
+            // Handle responses from the redis server
+            this.client.on("data", (data) => {
+                console.log(
+                    "Response from server: ".green,
+                    this.deserialize(data),
+                );
+            });
 
-            this.startReadingCommands()
-        });
-
-        // Handle connection closure
-        this.client.on("close", () => {
-            console.log("Connection closed");
+            // Handle connection closure
+            this.client.on("close", () => {
+                console.log("Connection closed".red);
+            });
         });
     }
 
@@ -44,23 +42,46 @@ class RedisClient {
         rl.on("line", (line) => {
             if (line.trim() === "quit") {
                 rl.close();
-                client.end();
+                this.client.end();
                 return;
             }
 
-            // Send command to the server
-            client.write(line.trim() + "\r\n");
-
-            // Handle responses from the server
-            client.once("data", (data) => {
-                console.log("Response from server:", data.toString());
-                rl.prompt();
-            });
+            // Send request to the redis server
+            this.client.write(this.serialize(line.trim()));
         });
+    }
 
-        rl.on("close", () => {
-            console.log("Connection closed");
-        });
+    deserialize(data) {
+        const response = data.toString();
+
+        let deserializeResponse = null;
+
+        // Check if it's simple string
+        if (response[0] === "+") {
+            deserializeResponse = response.slice(1);
+        }
+
+        return deserializeResponse;
+    }
+
+    serialize(cmd) {
+        let formedCmd = cmd.toLowerCase().trim();
+
+        console.log(formedCmd);
+
+        if (formedCmd === "ping") {
+            return "*1\r\n$4\r\nping\r\n";
+        } else if (formedCmd === "set") {
+            console.log("aaa");
+            const key = formedCmd.split(" ")[1];
+            const val = formedCmd.split(" ")[2];
+
+            return `*3\r\n$${formedCmd.length}\r\nset\r\n$${key.length}\r\n${key}\r\n$${val.length}\r\n${val}\r\n`;
+        }
+        // If the cmd is unknown just send it and server will return it back!
+        else {
+            return `*1\r\n${formedCmd.length}\r\n${formedCmd}\r\n`;
+        }
     }
 }
 
