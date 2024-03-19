@@ -1,4 +1,8 @@
+## ⚡️ Start client and server
 
+```
+node main -h localhost -p 6379
+```
 ## 📸 Snapshots
 
 ### **Establishing Client-Server Connection**
@@ -26,6 +30,10 @@ This Redis clone project combines the following challenges:
 #### **GET**
 
 ![image](https://github.com/Ramzi-Abidi/Redis-javascript/assets/69228547/091f26cc-b2e9-4eb4-86d5-79d0741dba46)
+
+#### quit
+
+![image](https://github.com/Ramzi-Abidi/Redis-javascript/assets/69228547/da8241c0-fd4e-4237-9829-92089b8b3fea)
 
 ## ⭐️ Star the Repository
 
