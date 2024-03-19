@@ -47,7 +47,7 @@ class CreateServer {
                 this.command = this.request[2]
                     .replaceAll("\r", "")
                     .toLowerCase();
-                console.log("cd from server", this.command);
+                // console.log("cmd from server", this.command);
 
                 if (this.command === "ping") {
                     this.response = "+PONG\r\n";
@@ -57,9 +57,9 @@ class CreateServer {
                     this.response = `$${val.length}\r\n${val}\r\n`;
                     this.print(connection);
                 } else if (this.command === "set") {
-                    console.log("aaa");
                     let key = this.request[4].replaceAll("\r", "");
-                    this.set(key);
+                    let val = this.request[6].replaceAll("\r", "");
+                    this.set(key, val);
                     this.response = `+OK\r\n`;
                     this.print(connection);
                 } else if (this.command === "get") {
@@ -116,12 +116,11 @@ class CreateServer {
         return key in this.hash === true;
     }
 
-    set(key) {
+    set(key, val) {
         // We set the key only if it is not empty
         if (key !== "") {
-            let value = this.request[6].replaceAll("\r", "");
             // set the new key to its value
-            this.hash[key] = value;
+            this.hash[key] = val;
             // check if there's a time to expire
             if (this.request.length > 7) {
                 let px = this.request[8].replaceAll("\r", "");
@@ -141,7 +140,6 @@ class CreateServer {
                 this.response = `$-1\r\n`;
                 this.print(connection);
             }
-
             if (key in this.hash) {
                 // see if it's expired or not
                 this.response = `$${this.hash[key].length}\r\n${this.hash[key]}\r\n`;

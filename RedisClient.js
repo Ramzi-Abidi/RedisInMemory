@@ -9,7 +9,7 @@ class RedisClient {
     initialize(PORT, HOST) {
         // Connect to your Redis server that's running on localhost, port 6379
         this.client.connect(PORT, HOST, () => {
-            console.log("Connected to Redis server".italic.green);
+            console.log("Connected to Redis server".green.italic);
 
             this.startReadingCommands();
 
@@ -52,31 +52,40 @@ class RedisClient {
     }
 
     deserialize(data) {
-        const response = data.toString();
-
         let deserializeResponse = null;
+        const response = data.toString();
 
         // Check if it's simple string
         if (response[0] === "+") {
             deserializeResponse = response.slice(1);
+        } else if (response[0] === "$") {
+            let val = response.replaceAll("\r\n", " ").split(" ")[1];
+            deserializeResponse = val;
         }
-
         return deserializeResponse;
     }
 
-    serialize(cmd) {
-        let formedCmd = cmd.toLowerCase().trim();
+    static log(str) {
+        console.log("log client: ".yellow, str);
+    }
 
-        console.log(formedCmd);
+    serialize(cmd) {
+        let cmdToBeSerialize = cmd.toLowerCase().trim() + " ";
+        let formedCmd = cmdToBeSerialize.split(" ")[0].toLowerCase();
+
+        RedisClient.log("to be serialize " + formedCmd);
 
         if (formedCmd === "ping") {
             return "*1\r\n$4\r\nping\r\n";
         } else if (formedCmd === "set") {
-            console.log("aaa");
-            const key = formedCmd.split(" ")[1];
-            const val = formedCmd.split(" ")[2];
-
+            const key = cmdToBeSerialize.split(" ")[1];
+            const val = cmdToBeSerialize.split(" ")[2];
+            RedisClient.log("key and val", key, val);
             return `*3\r\n$${formedCmd.length}\r\nset\r\n$${key.length}\r\n${key}\r\n$${val.length}\r\n${val}\r\n`;
+        } else if (formedCmd === "get") {
+            const key = cmdToBeSerialize.split(" ")[1];
+
+            return `*2\r\n$${formedCmd.length}\r\nget\r\n$${key.length}\r\n${key}\r\n`;
         }
         // If the cmd is unknown just send it and server will return it back!
         else {
