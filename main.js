@@ -26,6 +26,7 @@ const start = () => {
 
     // Server listens to port
     server.listen(PORT, HOST);
+
     console.log(`Server listens to port ${PORT}`.yellow);
 
     // Connecting to redis server that's connecting to PORT

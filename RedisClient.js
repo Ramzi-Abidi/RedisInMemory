@@ -84,7 +84,6 @@ class RedisClient {
             return `*3\r\n$${formedCmd.length}\r\nset\r\n$${key.length}\r\n${key}\r\n$${val.length}\r\n${val}\r\n`;
         } else if (formedCmd === "get") {
             const key = cmdToBeSerialize.split(" ")[1];
-
             return `*2\r\n$${formedCmd.length}\r\nget\r\n$${key.length}\r\n${key}\r\n`;
         }
         // If the cmd is unknown just send it and server will return it back!
