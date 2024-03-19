@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Ramzi-Abidi/codecrafters-redis-javascript#readme",
   "dependencies": {
-    "colors": "^1.4.0"
+    "colors": "^1.4.0",
+    "nodemon": "^3.1.0"
   }
 }
