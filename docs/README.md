@@ -19,14 +19,6 @@ node main -h localhost -p 6379
 
 ![image](https://github.com/Ramzi-Abidi/Redis-javascript/assets/69228547/3808f77a-d95f-4fbe-bb0a-1376e2195ffc)
 
-## 🔗 Link to challenge 
-
-This Redis clone project combines the following challenges:
-
-- First challenge: [redis-server](https://codingchallenges.fyi/challenges/challenge-redis)
-
-- Second challenge: [redis-CLI](https://codingchallenges.fyi/challenges/challenge-redis-cli)
-
 #### **GET**
 
 ![image](https://github.com/Ramzi-Abidi/Redis-javascript/assets/69228547/091f26cc-b2e9-4eb4-86d5-79d0741dba46)
@@ -34,6 +26,14 @@ This Redis clone project combines the following challenges:
 #### quit
 
 ![image](https://github.com/Ramzi-Abidi/Redis-javascript/assets/69228547/da8241c0-fd4e-4237-9829-92089b8b3fea)
+
+## 🔗 Link to challenge 
+
+This Redis clone project combines the following challenges:
+
+- First challenge: [redis-server](https://codingchallenges.fyi/challenges/challenge-redis)
+
+- Second challenge: [redis-CLI](https://codingchallenges.fyi/challenges/challenge-redis-cli)
 
 ## ⭐️ Star the Repository
 
