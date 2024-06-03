@@ -16,7 +16,7 @@ class RedisClient {
             // Handle responses from the redis server
             this.client.on("data", (data) => {
                 console.log(
-                    "Response from server: ".green,
+                    "Response from Redis server: ".green,
                     this.deserialize(data),
                 );
             });
@@ -66,7 +66,7 @@ class RedisClient {
     }
 
     static log(str) {
-        console.log("log client: ".yellow, str);
+        // console.log("log client: ".yellow, str);
     }
 
     serialize(cmd) {
@@ -75,7 +75,10 @@ class RedisClient {
 
         RedisClient.log("to be serialize " + formedCmd);
 
-        if (formedCmd === "ping") {
+        if (formedCmd === "echo") {
+            const echoValue = cmdToBeSerialize.split(" ")[1];
+            return `*1\r\n$${formedCmd.length}\r\necho\r\n$${echoValue.length}\r\n${echoValue}\r\n`;
+        } else if (formedCmd === "ping") {
             return "*1\r\n$4\r\nping\r\n";
         } else if (formedCmd === "set") {
             const key = cmdToBeSerialize.split(" ")[1];
@@ -85,6 +88,9 @@ class RedisClient {
         } else if (formedCmd === "get") {
             const key = cmdToBeSerialize.split(" ")[1];
             return `*2\r\n$${formedCmd.length}\r\nget\r\n$${key.length}\r\n${key}\r\n`;
+        } else if (formedCmd === "exist") {
+            const key = cmdToBeSerialize.split(" ")[1];
+            return `*2\r\n$${formedCmd.length}\r\nexist\r\n$${key.length}\r\n${key}\r\n`;
         }
         // If the cmd is unknown just send it and server will return it back!
         else {

@@ -1,6 +1,6 @@
 const colors = require("colors");
 const { RedisClient } = require("./RedisClient");
-const { CreateServer } = require("./Server");
+const { CreateServer } = require("./server");
 
 const extractPortFromArg = (arr) => {
     return Number(arr[3]);
@@ -11,7 +11,7 @@ const extractHostFromArg = (arr) => {
 };
 
 const start = () => {
-    // Create server
+    // Create redis server
     const root = new CreateServer();
 
     // Create connection / listener to clients
@@ -20,7 +20,6 @@ const start = () => {
     // Create client
     const client = new RedisClient();
 
-    // Extract port and host from the cmd: "node ain -h localhost -p 6379"
     const PORT = extractPortFromArg(process.argv.slice(2));
     const HOST = extractHostFromArg(process.argv.slice(2));
 

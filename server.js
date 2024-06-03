@@ -15,27 +15,6 @@ class CreateServer {
         };
     }
 
-    // check if its master or slave and based on it choose port
-    // selectPort(args) {
-    //     let port = 6379;
-    //     if (args) {
-    //         if (args[0] && args[0] == "--port") {
-    //             port = args[1] && args[1];
-    //         }
-    //         if (args[2] && args[2] == "--replicaof") {
-    //             this.serverInfo.role = "slave";
-    //         }
-    //     }
-    //     return port;
-    // }
-
-    // createReplicaClient(masterHost, masterPort) {
-    //     const client = net.createConnection({ port: port, host: host }, () => {
-    //         client.write("*1\r\n$4\r\nping\r\n");
-    //         console.log("Connected to the server!");
-    //     });
-    // }
-
     static bulkStringify(input) {
         return input ? "$" + input.length + "\r\n" + input + "\r\n" : null;
     }
@@ -47,8 +26,6 @@ class CreateServer {
                 this.command = this.request[2]
                     .replaceAll("\r", "")
                     .toLowerCase();
-                // console.log("cmd from server", this.command);
-
                 if (this.command === "ping") {
                     this.response = "+PONG\r\n";
                     this.print(connection);
@@ -64,11 +41,8 @@ class CreateServer {
                     this.print(connection);
                 } else if (this.command === "get") {
                     let key = this.request[4].replaceAll("\r", "");
-                    console.log("59", key);
                     this.get(connection, key);
                 } else if (this.command === "info") {
-                    console.log("cmd", this.command);
-
                     this.serverInfo.master_replid =
                         "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
 
@@ -84,9 +58,12 @@ class CreateServer {
                     );
                     this.print(connection);
                 } else if (this.command === "exist") {
-                    console.log("89 req", this.request);
                     let key = this.request[4].replaceAll("\r", "");
-                    this.response = this.exist(key);
+                    let val = this.exist(key);
+
+                    this.response = this.exist(val);
+                    this.response =
+                        key in this.hash === true ? "+1\r\n" : "-1\r\n";
                     this.print(connection);
                 } else {
                     this.response = `+${this.command}`;
@@ -113,7 +90,7 @@ class CreateServer {
     }
 
     exist(key) {
-        return key in this.hash === true;
+        return key in this.hash === true ? "1" : "-1";
     }
 
     set(key, val) {
@@ -160,54 +137,3 @@ class CreateServer {
 module.exports = {
     CreateServer,
 };
-
-// const server = net.createServer((connection) => {
-//     // Handle connection
-//     connection.on("data", (data) => {
-//         let request = data.toString().trim().split("\n");
-//         console.log("req", request);
-
-//         let command = request[2].replaceAll("\r", "").toLowerCase();
-//         console.log("command", command);
-//         if (command === "ping") {
-//             connection.write("+PONG\r\n");
-//         } else if (command === "echo") {
-//             let val = request[4].replaceAll("\r", "");
-//             let response = `$${val.length}\r\n${val}\r\n`;
-//             connection.write(response);
-//         } else if (command === "set") {
-//             let key = request[4].replaceAll("\r", "");
-//             // We set the key only if it is not empty
-//             if (key !== "") {
-//                 let value = request[6].replaceAll("\r", "");
-//                 // set the new key to its value
-//                 hash[key] = value;
-//                 // check if there's a time to expire
-//                 if (request.length > 7) {
-//                     let px = request[8].replaceAll("\r", "");
-//                     let time = request[10].replaceAll("\r", "");
-//                     // delete key after "time"
-//                     if (px.toLowerCase() === "px") {
-//                         expire(key, time);
-//                     }
-//                 }
-//                 connection.write(`+OK\r\n`);
-//             }
-//         } else if (command === "get") {
-//             let key = request[4].replaceAll("\r", "");
-
-//             // if key is empty => return empty string
-//             if (key === "") {
-//                 connection.write(`$-1\r\n""\r\n`);
-//             }
-
-//             if (key in hash) {
-//                 // see if it's expired or not
-//                 connection.write(`$${hash[key].length}\r\n${hash[key]}\r\n`);
-//             } else {
-//                 connection.write(`$-1\r\n""\r\n`);
-
-//             }
-//         }
-//     });
-// });
