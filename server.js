@@ -18,6 +18,10 @@ class CreateServer {
     static bulkStringify(input) {
         return input ? "$" + input.length + "\r\n" + input + "\r\n" : null;
     }
+    chckIsNumber(key) {
+        const value = this.hash[key];
+        return !isNaN(value);
+    }
 
     initialize() {
         return net.createServer((connection) => {
@@ -41,7 +45,13 @@ class CreateServer {
                     this.print(connection);
                 } else if (this.command === "get") {
                     let key = this.request[4].replaceAll("\r", "");
-                    this.get(connection, key);
+                    if (this.exist(key) === "1") {
+                        this.get(connection, key);
+                    } else {
+                        this.response =
+                            this.exist(key) === "1" ? "+1\r\n" : "-1\r\n";
+                        this.print(connection);
+                    }
                 } else if (this.command === "info") {
                     this.serverInfo.master_replid =
                         "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
@@ -60,10 +70,40 @@ class CreateServer {
                 } else if (this.command === "exist") {
                     let key = this.request[4].replaceAll("\r", "");
                     let val = this.exist(key);
-
                     this.response = this.exist(val);
                     this.response =
                         key in this.hash === true ? "+1\r\n" : "-1\r\n";
+                    this.print(connection);
+                } else if (this.command === "del") {
+                    let key = this.request[4].replaceAll("\r", "");
+                    if (this.exist(key) === "-1") {
+                        this.response = `-1\r\n`;
+                    } else {
+                        this.response = `+1\r\n`;
+                        delete this.hash[key];
+                    }
+                    this.print(connection);
+                } else if (this.command === "inc") {
+                    let key = this.request[4].replaceAll("\r", "");
+                    if (this.exist(key) === "-1") {
+                        this.response = `-1\r\n`;
+                    } else {
+                        if (this.chckIsNumber(key)) {
+                            this.hash[key]++;
+                            this.response = `+OK\r\n`;
+                        }
+                    }
+                    this.print(connection);
+                } else if (this.command === "dec") {
+                    let key = this.request[4].replaceAll("\r", "");
+                    if (this.exist(key) === "-1") {
+                        this.response = `-1\r\n`;
+                    } else {
+                        if (this.chckIsNumber(key)) {
+                            this.hash[key]--;
+                            this.response = `+OK\r\n`;
+                        }
+                    }
                     this.print(connection);
                 } else {
                     this.response = `+${this.command}`;
@@ -77,7 +117,6 @@ class CreateServer {
         const isSlave =
             this.request[this.request.length - 1].replaceAll("\r", "") ===
             "replication";
-        console.log(isSlave);
         return isSlave;
     }
 
