@@ -91,6 +91,15 @@ class RedisClient {
         } else if (formedCmd === "exist") {
             const key = cmdToBeSerialize.split(" ")[1];
             return `*2\r\n$${formedCmd.length}\r\nexist\r\n$${key.length}\r\n${key}\r\n`;
+        } else if (formedCmd === "del") {
+            const key = cmdToBeSerialize.split(" ")[1];
+            return `*2\r\n$${formedCmd.length}\r\ndel\r\n$${key.length}\r\n${key}\r\n`;
+        } else if (formedCmd === "inc") {
+            const key = cmdToBeSerialize.split(" ")[1];
+            return `*2\r\n$${formedCmd.length}\r\ninc\r\n$${key.length}\r\n${key}\r\n`;
+        } else if (formedCmd === "dec") {
+            const key = cmdToBeSerialize.split(" ")[1];
+            return `*2\r\n$${formedCmd.length}\r\ndec\r\n$${key.length}\r\n${key}\r\n`;
         }
         // If the cmd is unknown just send it and server will return it back!
         else {
