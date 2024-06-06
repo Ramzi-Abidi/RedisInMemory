@@ -2,9 +2,7 @@ const net = require("net");
 
 class CreateServer {
     constructor() {
-        this.hash = {
-            "-1": "",
-        };
+        this.hash = {};
         this.request = "";
         this.command = "";
         this.response = "";
@@ -18,7 +16,8 @@ class CreateServer {
     static bulkStringify(input) {
         return input ? "$" + input.length + "\r\n" + input + "\r\n" : null;
     }
-    chckIsNumber(key) {
+
+    isNumber(key) {
         const value = this.hash[key];
         return !isNaN(value);
     }
@@ -30,84 +29,91 @@ class CreateServer {
                 this.command = this.request[2]
                     .replaceAll("\r", "")
                     .toLowerCase();
-                if (this.command === "ping") {
-                    this.response = "+PONG\r\n";
-                    this.print(connection);
-                } else if (this.command === "echo") {
-                    let val = this.request[4].replaceAll("\r", "");
-                    this.response = `$${val.length}\r\n${val}\r\n`;
-                    this.print(connection);
-                } else if (this.command === "set") {
-                    let key = this.request[4].replaceAll("\r", "");
-                    let val = this.request[6].replaceAll("\r", "");
-                    this.set(key, val);
-                    this.response = `+OK\r\n`;
-                    this.print(connection);
-                } else if (this.command === "get") {
-                    let key = this.request[4].replaceAll("\r", "");
-                    if (this.exist(key) === "1") {
-                        this.get(connection, key);
-                    } else {
-                        this.response =
-                            this.exist(key) === "1" ? "+1\r\n" : "-1\r\n";
+                switch (this.command) {
+                    case "ping":
+                        this.response = "+PONG\r\n";
                         this.print(connection);
-                    }
-                } else if (this.command === "info") {
-                    this.serverInfo.master_replid =
-                        "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
-
-                    this.response = CreateServer.bulkStringify(
-                        "role:" +
-                            this.serverInfo.role +
-                            "\r\n" +
-                            "master_replid:" +
-                            this.serverInfo.master_replid +
-                            "\r\n" +
-                            "master_repl_offset:" +
-                            this.serverInfo.master_repl_offset,
-                    );
-                    this.print(connection);
-                } else if (this.command === "exist") {
-                    let key = this.request[4].replaceAll("\r", "");
-                    let val = this.exist(key);
-                    this.response = this.exist(val);
-                    this.response =
-                        key in this.hash === true ? "+1\r\n" : "-1\r\n";
-                    this.print(connection);
-                } else if (this.command === "del") {
-                    let key = this.request[4].replaceAll("\r", "");
-                    if (this.exist(key) === "-1") {
-                        this.response = `-1\r\n`;
-                    } else {
-                        this.response = `+1\r\n`;
-                        delete this.hash[key];
-                    }
-                    this.print(connection);
-                } else if (this.command === "inc") {
-                    let key = this.request[4].replaceAll("\r", "");
-                    if (this.exist(key) === "-1") {
-                        this.response = `-1\r\n`;
-                    } else {
-                        if (this.chckIsNumber(key)) {
-                            this.hash[key]++;
-                            this.response = `+OK\r\n`;
+                        break;
+                    case "echo":
+                        let echoVal = this.request[4].replaceAll("\r", "");
+                        this.response = `$${echoVal.length}\r\n${echoVal}\r\n`;
+                        this.print(connection);
+                        break;
+                    case "set":
+                        let setKey = this.request[4].replaceAll("\r", "");
+                        let setVal = this.request[6].replaceAll("\r", "");
+                        this.set(setKey, setVal);
+                        this.response = "+OK\r\n";
+                        this.print(connection);
+                        break;
+                    case "get":
+                        let getKey = this.request[4].replaceAll("\r", "");
+                        let getKeyExist = this.exist(getKey);
+                        if (getKeyExist === "+1") {
+                            this.get(connection, getKey);
+                        } else {
+                            this.response = `${getKeyExist}\r\n`;
+                            this.print(connection);
                         }
-                    }
-                    this.print(connection);
-                } else if (this.command === "dec") {
-                    let key = this.request[4].replaceAll("\r", "");
-                    if (this.exist(key) === "-1") {
-                        this.response = `-1\r\n`;
-                    } else {
-                        if (this.chckIsNumber(key)) {
-                            this.hash[key]--;
-                            this.response = `+OK\r\n`;
+                        break;
+                    case "info":
+                        this.serverInfo.master_replid =
+                            "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
+                        this.response = CreateServer.bulkStringify(
+                            "role:" +
+                                this.serverInfo.role +
+                                "\r\n" +
+                                "master_replid:" +
+                                this.serverInfo.master_replid +
+                                "\r\n" +
+                                "master_repl_offset:" +
+                                this.serverInfo.master_repl_offset,
+                        );
+                        this.print(connection);
+                        break;
+                    case "exist":
+                        let existKey = this.request[4].replaceAll("\r", "");
+                        let keyExist = this.exist(existKey);
+                        this.response = `${keyExist}\r\n`;
+                        console.log(this.response);
+                        this.print(connection);
+                        break;
+                    case "del":
+                        let delKey = this.request[4].replaceAll("\r", "");
+                        let delKeyExist = this.exist(delKey);
+                        this.response = `${delKeyExist}\r\n`;
+                        if (delKeyExist === "1") {
+                            this.response = `+${delKeyExist}\r\n`;
+                            delete this.hash[delKey];
                         }
-                    }
-                    this.print(connection);
-                } else {
-                    this.response = `+${this.command}`;
-                    this.print(connection);
+                        this.print(connection);
+                        break;
+                    case "inc":
+                        let incKey = this.request[4].replaceAll("\r", "");
+                        let incKeyExist = this.exist(incKey);
+                        if (incKeyExist === "-1") {
+                            this.response = `${incKeyExist}\r\n`;
+                        } else if (this.isNumber(incKey)) {
+                            this.hash[incKey]++;
+                            this.response = "+OK\r\n";
+                        }
+                        this.print(connection);
+                        break;
+                    case "dec":
+                        let decKey = this.request[4].replaceAll("\r", "");
+                        let decKeyExist = this.exist(decKey);
+                        if (decKeyExist === "-1") {
+                            this.response = `${decKeyExist}\r\n`;
+                        } else if (this.isNumber(decKey)) {
+                            this.hash[decKey]--;
+                            this.response = "+OK\r\n";
+                        }
+                        this.print(connection);
+                        break;
+                    default:
+                        this.response = `+${this.command}`;
+                        this.print(connection);
+                        break;
                 }
             });
         });
@@ -129,7 +135,7 @@ class CreateServer {
     }
 
     exist(key) {
-        return key in this.hash === true ? "1" : "-1";
+        return key in this.hash === true ? "+1" : "-1";
     }
 
     set(key, val) {
@@ -169,8 +175,6 @@ class CreateServer {
     print(connection) {
         return connection.write(this.response.toString());
     }
-
-    generateResponse() {}
 }
 
 module.exports = {

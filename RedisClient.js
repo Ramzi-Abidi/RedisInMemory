@@ -66,44 +66,41 @@ class RedisClient {
     }
 
     static log(str) {
-        // console.log("log client: ".yellow, str);
+        console.log("log client: ".yellow, str);
     }
 
     serialize(cmd) {
         let cmdToBeSerialize = cmd.toLowerCase().trim() + " ";
         let formedCmd = cmdToBeSerialize.split(" ")[0].toLowerCase();
 
-        RedisClient.log("to be serialize " + formedCmd);
+        // RedisClient.log("to be serialize " + formedCmd);
 
-        if (formedCmd === "echo") {
-            const echoValue = cmdToBeSerialize.split(" ")[1];
-            return `*1\r\n$${formedCmd.length}\r\necho\r\n$${echoValue.length}\r\n${echoValue}\r\n`;
-        } else if (formedCmd === "ping") {
-            return "*1\r\n$4\r\nping\r\n";
-        } else if (formedCmd === "set") {
-            const key = cmdToBeSerialize.split(" ")[1];
-            const val = cmdToBeSerialize.split(" ")[2];
-            RedisClient.log("key and val", key, val);
-            return `*3\r\n$${formedCmd.length}\r\nset\r\n$${key.length}\r\n${key}\r\n$${val.length}\r\n${val}\r\n`;
-        } else if (formedCmd === "get") {
-            const key = cmdToBeSerialize.split(" ")[1];
-            return `*2\r\n$${formedCmd.length}\r\nget\r\n$${key.length}\r\n${key}\r\n`;
-        } else if (formedCmd === "exist") {
-            const key = cmdToBeSerialize.split(" ")[1];
-            return `*2\r\n$${formedCmd.length}\r\nexist\r\n$${key.length}\r\n${key}\r\n`;
-        } else if (formedCmd === "del") {
-            const key = cmdToBeSerialize.split(" ")[1];
-            return `*2\r\n$${formedCmd.length}\r\ndel\r\n$${key.length}\r\n${key}\r\n`;
-        } else if (formedCmd === "inc") {
-            const key = cmdToBeSerialize.split(" ")[1];
-            return `*2\r\n$${formedCmd.length}\r\ninc\r\n$${key.length}\r\n${key}\r\n`;
-        } else if (formedCmd === "dec") {
-            const key = cmdToBeSerialize.split(" ")[1];
-            return `*2\r\n$${formedCmd.length}\r\ndec\r\n$${key.length}\r\n${key}\r\n`;
-        }
-        // If the cmd is unknown just send it and server will return it back!
-        else {
-            return `*1\r\n${formedCmd.length}\r\n${formedCmd}\r\n`;
+        const commandParts = cmdToBeSerialize.split(" ");
+        const key = commandParts[1];
+        const val = commandParts[2];
+
+        switch (formedCmd) {
+            case "echo":
+                const echoValue = key;
+                return `*1\r\n$${formedCmd.length}\r\necho\r\n$${echoValue.length}\r\n${echoValue}\r\n`;
+
+            case "ping":
+                return "*1\r\n$4\r\nping\r\n";
+
+            case "set":
+                // RedisClient.log("key and val", key, val);
+                return `*3\r\n$${formedCmd.length}\r\nset\r\n$${key.length}\r\n${key}\r\n$${val.length}\r\n${val}\r\n`;
+
+            case "get":
+            case "exist":
+            case "del":
+            case "inc":
+            case "dec":
+                return `*2\r\n$${formedCmd.length}\r\n${formedCmd}\r\n$${key.length}\r\n${key}\r\n`;
+
+            default:
+                // If the cmd is unknown just send it and the server will return it back!
+                return `*1\r\n${formedCmd.length}\r\n${formedCmd}\r\n`;
         }
     }
 }
