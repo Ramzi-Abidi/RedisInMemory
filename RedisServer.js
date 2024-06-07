@@ -1,6 +1,6 @@
 const net = require("net");
 
-class CreateServer {
+class RedisServer {
     constructor() {
         this.hash = {};
         this.request = "";
@@ -59,7 +59,7 @@ class CreateServer {
                     case "info":
                         this.serverInfo.master_replid =
                             "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
-                        this.response = CreateServer.bulkStringify(
+                        this.response = Server.bulkStringify(
                             "role:" +
                                 this.serverInfo.role +
                                 "\r\n" +
@@ -178,5 +178,5 @@ class CreateServer {
 }
 
 module.exports = {
-    CreateServer,
+    RedisServer,
 };
