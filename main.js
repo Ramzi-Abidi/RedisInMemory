@@ -11,24 +11,19 @@ const extractHostFromArg = (arr) => {
 };
 
 const start = () => {
-    // Create redis server
     const root = new RedisServer();
 
-    // Create connection / listener to clients
     const server = root.initialize();
 
-    // Create client
     const client = new RedisClient();
 
     const PORT = extractPortFromArg(process.argv.slice(2));
     const HOST = extractHostFromArg(process.argv.slice(2));
 
-    // Server listens to port
     server.listen(PORT, HOST);
 
     console.log(`Server listens to port ${PORT}`.yellow);
 
-    // Connecting to redis server that's connecting to PORT
     client.initialize(PORT, HOST);
 };
 
